@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongoose').Types;
-const { Student, Course } = require('../models');
+const { User, Thought } = require('../models');
 
 // Aggregate function to get the number of students overall
 const headCount = async () =>
@@ -24,6 +24,13 @@ const grade = async (studentId) =>
   ]);
 
 module.exports = {
+  // create User
+  createUser(req, res) {
+    User.create(req.body)
+      .then((userData) => res.json(userData))
+      .catch((err) => res.status(500).json(err));
+  },
+
   // Get all students
   getStudents(req, res) {
     Student.find()
