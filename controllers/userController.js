@@ -13,6 +13,8 @@ module.exports = {
   getUsers(req, res) {
     User.find()
       .select('-__v')
+      .populate({ path: 'thoughts', select: '-__v' })
+      .populate({ path: 'friends', select: '-__v' })
       .then(users => res.json(users))
       .catch((err) => {
         console.log(err);
@@ -20,7 +22,7 @@ module.exports = {
       })
   },
 
-  // Get a single user by id
+  // Get a single user by ID
   getoneUser(req, res) {
     User.findOne({ _id: req.params.userID })
       .populate({ path: 'thoughts', select: '-__v' })
@@ -33,6 +35,23 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
   },
 
+  // Update a user by ID
+  updateUser(req, res) {
+    User.findOneAndUpdate(
+      { _id: req.params.userID },
+      { $set: req.body },
+      { runValidators: true, new: true }
+    )
+    .then((user) =>
+      !user
+        ? res.status(404).json({ message: 'No user with this ID!' })
+        : res.json(user)
+    )
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+  },
 
   // Delete a student and remove them from the course
   deleteStudent(req, res) {
@@ -57,7 +76,25 @@ module.exports = {
         console.log(err);
         res.status(500).json(err);
       });
+  },  
+
+  deleteUser({ params }, res) {
+    Thought.deleteMany({ userId: params.id })
+      .then(() => {
+        User.findOneAndDelete({ userId: params.id })
+          .then(dbUserData => {
+            if (!dbUserData) {
+              res.status(404).json({ message: 'No User found with this id!' });
+              return;
+            }
+            res.json(dbUserData);
+          });
+      })
+      .catch(err => res.json(err));
   },
+
+
+
 
   // Add an assignment to a student
   addAssignment(req, res) {

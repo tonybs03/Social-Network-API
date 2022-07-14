@@ -1,12 +1,36 @@
-const { Course, Student } = require('../models');
+const { Thought, User } = require('../models');
 
 module.exports = {
-  // Get all courses
+  // Create a thought
+  createThought(req, res) {
+    Thought.create(req.body)
+      .then((thought) => {
+        return User.findOneAndUpdate(
+          { _id: req.body.userID },
+          { $addToSet: { thoughts: thought._id } },
+          { new: true }
+        );
+      })
+      .then((user) =>
+        !user
+          ? res.status(404).json({
+              message: 'Thought created, but found no user with that ID',
+            })
+          : res.json('Created the thought🎉')
+      )
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+      });
+  },
+
+  // Get all thoughts
   getCourses(req, res) {
     Course.find()
       .then((courses) => res.json(courses))
       .catch((err) => res.status(500).json(err));
   },
+
   // Get a course
   getSingleCourse(req, res) {
     Course.findOne({ _id: req.params.courseId })

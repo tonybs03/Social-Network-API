@@ -2,13 +2,13 @@ const router = require('express').Router();
 const {
   getCourses,
   getSingleCourse,
-  createCourse,
+  createThought,
   updateCourse,
   deleteCourse,
-} = require('../../controllers/courseController.js');
+} = require('../../controllers/thoughtController.js');
 
-// /api/courses
-router.route('/').get(getCourses).post(createCourse);
+// /api/thoughts
+router.route('/').get(getCourses).post(createThought);
 
 // /api/courses/:courseId
 router
