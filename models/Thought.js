@@ -29,7 +29,7 @@ const reactionSchema = new Schema(
       virtuals: true, //virtuals enabled
       getters: true   //getters enabled
     },
-    id: false
+    _id: false
   }
 );
 

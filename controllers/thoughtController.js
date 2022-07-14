@@ -67,17 +67,57 @@ module.exports = {
     .catch((err) => res.status(500).json(err));
   },
 
-  // Delete a course
-  deleteCourse(req, res) {
-    Course.findOneAndDelete({ _id: req.params.courseId })
-      .then((course) =>
-        !course
-          ? res.status(404).json({ message: 'No course with that ID' })
-          : Student.deleteMany({ _id: { $in: course.students } })
-      )
-      .then(() => res.json({ message: 'Course and students deleted!' }))
-      .catch((err) => res.status(500).json(err));
+  // Create a Reaction
+  createReaction(req, res) {
+    Thought.findOneAndUpdate(
+      {_id: req.params.thoughtID}, 
+      {$set: {reactions: req.body}}, 
+      {new: true, runValidators: true}
+    )
+    .select('-__v')
+    .populate({path: 'reactions', select: '-__v'})
+    .then((thought) =>
+      !thought
+        ? res.status(404).json({ message: 'No thought with this id!' })
+        : res.json(thought)
+    )
+    .catch((err) => res.status(500).json(err));
   },
 
+  // Delete a Reaction 
+  deleteReaction(req, res) {
+    Thought.findOneAndUpdate(
+      { _id: req.params.thoughtID },
+      { $pull: { reactions: { reactionId: req.params.reactionID } } },
+      { new: true }
+    )
+    .then((reaction) =>
+      !reaction
+        ? res.status(404).json({ message: 'No reaction with this id!' })
+        : res.json(reaction)
+    )
+    .catch((err) => res.status(500).json(err));
+  },
 
+  // Delete a thought and pull it fromt the user
+  deleteThought(req, res) {
+    Thought.findOneAndRemove({ _id: req.params.thoughtID })
+      .then((thought) =>
+        !thought
+          ? res.status(404).json({ message: 'No thought found with this ID!' })
+          : User.findOneAndUpdate(
+              { thoughts: req.params.thoughtID },
+              { $pull: { thoughts: req.params.thoughtID } },
+              { new: true }
+            )
+      )
+      .then((user) =>
+        !user
+          ? res.status(404).json({
+              message: 'Thought deleted but no user with this ID!',
+            })
+          : res.json({ message: 'Thought successfully deleted!' })
+      )
+      .catch((err) => res.status(500).json(err));
+  }
 };
