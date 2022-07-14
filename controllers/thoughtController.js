@@ -25,32 +25,48 @@ module.exports = {
   },
 
   // Get all thoughts
-  getCourses(req, res) {
-    Course.find()
-      .then((courses) => res.json(courses))
+  getThoughts(req, res) {
+    Thought.find()
+      .select('-__v')
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      })
+      .then((thoughts) => res.json(thoughts))
       .catch((err) => res.status(500).json(err));
   },
 
-  // Get a course
-  getSingleCourse(req, res) {
-    Course.findOne({ _id: req.params.courseId })
+  // Get one thought
+  getoneThought(req, res) {
+    Thought.findOne({ _id: req.params.thoughtID })
       .select('-__v')
-      .then((course) =>
-        !course
-          ? res.status(404).json({ message: 'No course with that ID' })
-          : res.json(course)
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      })
+      .then((thought) =>
+        !thought
+          ? res.status(404).json({ message: 'No thought with that ID' })
+          : res.json(thought)
       )
       .catch((err) => res.status(500).json(err));
   },
-  // Create a course
-  createCourse(req, res) {
-    Course.create(req.body)
-      .then((course) => res.json(course))
-      .catch((err) => {
-        console.log(err);
-        return res.status(500).json(err);
-      });
+
+  // Update a thought
+  updateThought(req, res) {
+    Thought.findOneAndUpdate(
+      { _id: req.params.thoughtID },
+      { $set: req.body },
+      { runValidators: true, new: true }
+    )
+    .then((thought) =>
+      !thought
+        ? res.status(404).json({ message: 'No thought with this id!' })
+        : res.json(thought)
+    )
+    .catch((err) => res.status(500).json(err));
   },
+
   // Delete a course
   deleteCourse(req, res) {
     Course.findOneAndDelete({ _id: req.params.courseId })
@@ -62,18 +78,6 @@ module.exports = {
       .then(() => res.json({ message: 'Course and students deleted!' }))
       .catch((err) => res.status(500).json(err));
   },
-  // Update a course
-  updateCourse(req, res) {
-    Course.findOneAndUpdate(
-      { _id: req.params.courseId },
-      { $set: req.body },
-      { runValidators: true, new: true }
-    )
-      .then((course) =>
-        !course
-          ? res.status(404).json({ message: 'No course with this id!' })
-          : res.json(course)
-      )
-      .catch((err) => res.status(500).json(err));
-  },
+
+
 };
